@@ -1,0 +1,169 @@
+# StuSupport
+
+> **AI-Based Dropout Prediction and Counselling System**
+
+A web application that predicts students at risk of dropping out using machine learning and provides personalized counseling to support early intervention and improve student retention.
+
+## Overview
+
+Student dropout is a significant challenge in higher education, leading to academic, financial, and social consequences for both students and institutions.
+
+This project aims to identify students who may be at risk of dropping out by analyzing academic indicators such as CGPA, SGPA, attendance, semester backlogs, and fee payment status. A Random Forest classifier is trained on historical student data to estimate each student's dropout risk.
+
+The application provides faculty with a dashboard to monitor at-risk students and intervene at an early stage. Students identified as high-risk can interact with a counseling assistant based on a Large Language Model (Qwen via Groq API), which offers personalized guidance and directs them to appropriate institutional support.
+
+---
+
+## Features
+
+- Predict student dropout risk using a Random Forest classifier
+- Faculty dashboard for monitoring at-risk students
+- Personalized counseling assistant
+- Student profile and academic record management
+- Risk categorization (Low, Medium, High)
+- Secure authentication using JWT
+- RESTful API built with FastAPI
+
+---
+
+## Methodology
+
+### 1. Data Collection
+
+Collect academic and administrative data such as CGPA, SGPA, attendance, semester backlogs, and fee payment status from a centralized PostgreSQL database.
+
+### 2. Data Preprocessing & Feature Engineering
+
+Clean the dataset, handle missing values, encode categorical variables, and prepare relevant features for model training.
+
+### 3. Model Training & Evaluation
+
+Train a Random Forest classifier using historical student records and evaluate its performance using Accuracy, Precision, Recall, and F1-Score.
+
+### 4. Risk Prediction
+
+Generate a dropout probability for each student and classify them into Low, Medium, or High risk categories.
+
+### 5. Intervention & Counseling
+
+Display high-risk students on the faculty dashboard and provide personalized recommendations through the counseling assistant.
+
+---
+
+## Tech Stack
+
+### Frontend
+
+- React.js
+- Tailwind CSS
+
+### Backend
+
+- FastAPI (Python)
+
+### Database
+
+- PostgreSQL
+
+### Machine Learning
+
+- scikit-learn (Random Forest Classifier)
+- pandas
+- NumPy
+
+### AI Counselor
+
+- Qwen (via Groq API)
+
+### Authentication
+
+- JWT (JSON Web Tokens)
+
+### ORM
+
+- SQLAlchemy
+
+### Hosting
+
+- Render
+- Railway
+
+### Version Control
+
+- Git
+- GitHub
+
+---
+
+## Project Structure
+
+```text
+ai-dropout-prediction/
+
+├── frontend/
+├── backend/
+├── ml/
+├── database/
+├── docs/
+├── requirements.txt
+└── README.md
+```
+
+---
+
+## System Workflow
+
+```text
+Student Records
+       │
+       ▼
+PostgreSQL Database
+       │
+       ▼
+Data Preprocessing
+       │
+       ▼
+Random Forest Classifier
+       │
+       ▼
+Dropout Risk Prediction
+       │
+       ▼
+Faculty Dashboard
+       │
+       ├──────────────┐
+       ▼              ▼
+Low/Medium Risk   High Risk
+                       │
+                       ▼
+            Counseling Assistant (Qwen)
+```
+
+---
+
+## Roadmap
+
+- [ ] Design database schema
+- [ ] Develop backend APIs
+- [ ] Implement authentication
+- [ ] Build frontend
+- [ ] Train and evaluate the ML model
+- [ ] Integrate the counseling assistant
+- [ ] Develop faculty dashboard
+- [ ] Deploy the application
+- [ ] Complete documentation
+
+---
+
+## References
+
+1. Breiman, L. "Random Forests." *Machine Learning*, vol. 45, no. 1, pp. 5–32, 2001.
+2. Aulck, L., Velagapudi, N., Blumenstock, J., and West, J. "Predicting Student Dropout in Higher Education." *arXiv preprint*, arXiv:1606.06364, 2016.
+3. Goren, O., et al. "Early Prediction of Student Dropout in Higher Education." *Proceedings of the 17th International Conference on Educational Data Mining (EDM)*, 2024.
+4. Putra, L. G. R., et al. "Student Dropout Prediction Using Random Forest and XGBoost Method." *INTENSIF: Jurnal Ilmiah Penelitian dan Penerapan Teknologi Sistem Informasi*, vol. 9, no. 1, 2025.
+
+---
+
+## License
+
+This project is intended for academic and educational purposes.
