@@ -10,7 +10,7 @@ Student dropout is a significant challenge in higher education, leading to acade
 
 This project aims to identify students who may be at risk of dropping out by analyzing academic indicators such as CGPA, SGPA, attendance, semester backlogs, and fee payment status. A Random Forest classifier is trained on historical student data to estimate each student's dropout risk.
 
-The application provides faculty with a dashboard to monitor at-risk students and intervene at an early stage. Students identified as high-risk can interact with a counseling assistant based on a Large Language Model (Qwen via Groq API), which offers personalized guidance and directs them to appropriate institutional support.
+The application provides faculty with a dashboard to monitor at-risk students and intervene at an early stage. Students identified as high-risk can interact with a counseling assistant based on a Large Language Model (Qwen via Groq API), which offers personalized guidance and directs them to appropriate institutional support. The assistant uses Retrieval-Augmented Generation (RAG) to ground its responses in the institution's actual policies and support resources, rather than relying solely on the model's general knowledge.
 
 ---
 
@@ -19,6 +19,7 @@ The application provides faculty with a dashboard to monitor at-risk students an
 - Predict student dropout risk using a Random Forest classifier
 - Faculty dashboard for monitoring at-risk students
 - Personalized counseling assistant
+- Retrieval-Augmented Generation (RAG) for grounding counseling responses in institutional policies and resources
 - Student profile and academic record management
 - Risk categorization (Low, Medium, High)
 - Secure authentication using JWT
@@ -31,6 +32,8 @@ The application provides faculty with a dashboard to monitor at-risk students an
 ### 1. Data Collection
 
 Collect academic and administrative data such as CGPA, SGPA, attendance, semester backlogs, and fee payment status from a centralized PostgreSQL database.
+
+The initial model is trained and validated using the public dataset from Martins et al. (2021), *"Early prediction of student's performance in higher education: a case study"* (see References), which provides labeled records of student academic and demographic indicators for dropout/academic-success prediction. The centralized PostgreSQL database is then used for live inference once the institution's own student records are integrated.
 
 ### 2. Data Preprocessing & Feature Engineering
 
@@ -48,6 +51,10 @@ Generate a dropout probability for each student and classify them into Low, Medi
 
 Display high-risk students on the faculty dashboard and provide personalized recommendations through the counseling assistant.
 
+### 6. Knowledge Retrieval (RAG)
+
+Institutional documents (academic policies, financial aid criteria, counseling and mental health resources) are chunked, embedded, and stored as vectors. When a student interacts with the counseling assistant, relevant chunks are retrieved and injected into the LLM prompt alongside the student's risk profile, ensuring responses are grounded in accurate, institution-specific information.
+
 ---
 
 ## Tech Stack
@@ -64,6 +71,7 @@ Display high-risk students on the faculty dashboard and provide personalized rec
 ### Database
 
 - PostgreSQL
+- pgvector (vector similarity search for RAG)
 
 ### Machine Learning
 
@@ -74,6 +82,7 @@ Display high-risk students on the faculty dashboard and provide personalized rec
 ### AI Counselor
 
 - Qwen (via Groq API)
+- Retrieval-Augmented Generation (RAG) using sentence-transformers embeddings + pgvector
 
 ### Authentication
 
@@ -104,6 +113,7 @@ ai-dropout-prediction/
 ├── backend/
 ├── ml/
 ├── database/
+├── knowledge_base/
 ├── docs/
 ├── requirements.txt
 └── README.md
@@ -136,6 +146,9 @@ Faculty Dashboard
 Low/Medium Risk   High Risk
                        │
                        ▼
+          Knowledge Base Retrieval (RAG)
+                       │
+                       ▼
             Counseling Assistant (Qwen)
 ```
 
@@ -149,6 +162,7 @@ Low/Medium Risk   High Risk
 - [ ] Build frontend
 - [ ] Train and evaluate the ML model
 - [ ] Integrate the counseling assistant
+- [ ] Build RAG knowledge base (document ingestion + pgvector)
 - [ ] Develop faculty dashboard
 - [ ] Deploy the application
 - [ ] Complete documentation
@@ -157,10 +171,11 @@ Low/Medium Risk   High Risk
 
 ## References
 
-1. Breiman, L. "Random Forests." *Machine Learning*, vol. 45, no. 1, pp. 5–32, 2001.
-2. Aulck, L., Velagapudi, N., Blumenstock, J., and West, J. "Predicting Student Dropout in Higher Education." *arXiv preprint*, arXiv:1606.06364, 2016.
-3. Goren, O., et al. "Early Prediction of Student Dropout in Higher Education." *Proceedings of the 17th International Conference on Educational Data Mining (EDM)*, 2024.
-4. Putra, L. G. R., et al. "Student Dropout Prediction Using Random Forest and XGBoost Method." *INTENSIF: Jurnal Ilmiah Penelitian dan Penerapan Teknologi Sistem Informasi*, vol. 9, no. 1, 2025.
+1. Martins, M.V., Tolledo, D., Machado, J., Baptista, L.M.T., and Realinho, V. "Early Prediction of Student's Performance in Higher Education: A Case Study." *Trends and Applications in Information Systems and Technologies*, vol. 1, Advances in Intelligent Systems and Computing, Springer, 2021. DOI: [10.1007/978-3-030-72657-7_16](https://doi.org/10.1007/978-3-030-72657-7_16) *(dataset used for model training)*
+2. Breiman, L. "Random Forests." *Machine Learning*, vol. 45, no. 1, pp. 5–32, 2001.
+3. Aulck, L., Velagapudi, N., Blumenstock, J., and West, J. "Predicting Student Dropout in Higher Education." *arXiv preprint*, arXiv:1606.06364, 2016.
+4. Goren, O., et al. "Early Prediction of Student Dropout in Higher Education." *Proceedings of the 17th International Conference on Educational Data Mining (EDM)*, 2024.
+5. Putra, L. G. R., et al. "Student Dropout Prediction Using Random Forest and XGBoost Method." *INTENSIF: Jurnal Ilmiah Penelitian dan Penerapan Teknologi Sistem Informasi*, vol. 9, no. 1, 2025.
 
 ---
 
