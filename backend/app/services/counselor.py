@@ -1,7 +1,10 @@
 """Counseling assistant: retrieves institutional context (RAG) and asks Qwen via Groq."""
 import re
 
-import httpx
+try:  # httpx2 is the maintained successor to httpx, with the same API
+    import httpx2 as httpx
+except ImportError:  # pragma: no cover
+    import httpx
 
 from ..config import get_settings
 

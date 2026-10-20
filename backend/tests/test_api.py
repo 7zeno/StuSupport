@@ -12,7 +12,8 @@ import pytest
 
 _tmp = tempfile.mkdtemp()
 os.environ["DATABASE_URL"] = f"sqlite:///{_tmp}/test.db"
-os.environ.pop("GROQ_API_KEY", None)
+os.environ["GROQ_API_KEY"] = ""  # always test the offline path, even if .env has a key
+os.environ["JWT_SECRET"] = "test-secret-" + "x" * 40
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from fastapi.testclient import TestClient  # noqa: E402

@@ -1,10 +1,12 @@
 """Application settings, read from environment variables (and backend/.env if present)."""
 import os
+import warnings
 from functools import lru_cache
 from pathlib import Path
 
 ROOT_DIR = Path(__file__).resolve().parents[2]  # repo root
 BACKEND_DIR = ROOT_DIR / "backend"
+DEFAULT_JWT_SECRET = "change-me-in-production"
 
 try:  # optional: load backend/.env during local development
     from dotenv import load_dotenv
@@ -30,7 +32,13 @@ class Settings:
             self.database_url = self.database_url.replace("postgresql://", "postgresql+psycopg://", 1)
 
         # Auth
-        self.jwt_secret: str = _env("JWT_SECRET", "change-me-in-production")
+        self.jwt_secret: str = _env("JWT_SECRET", DEFAULT_JWT_SECRET)
+        if self.jwt_secret == DEFAULT_JWT_SECRET or len(self.jwt_secret) < 32:
+            warnings.warn(
+                "JWT_SECRET is the placeholder or shorter than 32 characters. Set a strong one in backend/.env: "
+                'python -c "import secrets; print(secrets.token_urlsafe(48))"',
+                stacklevel=2,
+            )
         self.jwt_algorithm: str = "HS256"
         self.jwt_expire_minutes: int = int(_env("JWT_EXPIRE_MINUTES", "720"))
 
