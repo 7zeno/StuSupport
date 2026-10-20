@@ -73,6 +73,27 @@ export default function Dashboard() {
         </button>
       </div>
 
+      {summary.safety_alerts?.length > 0 && (
+        <div className="rounded-2xl border-2 border-rose-300 bg-rose-50 p-4">
+          <div className="font-semibold text-rose-800">
+            Safety alerts — follow up today ({summary.safety_alerts.length})
+          </div>
+          <p className="mb-3 text-sm text-rose-800/80">
+            These students wrote something to the counseling assistant suggesting possible risk of self-harm. They were shown
+            crisis contacts. Mark the alert resolved on the student's page once someone has reached them.
+          </p>
+          <ul className="flex flex-wrap gap-2">
+            {summary.safety_alerts.map((a) => (
+              <li key={`${a.student_id}-${a.created_at}`}>
+                <Link to={`/students/${a.student_id}`} className="inline-block rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-rose-800 ring-1 ring-rose-200 hover:bg-rose-100">
+                  {a.name} · {a.roll_no} · {new Date(a.created_at + (a.created_at.endsWith("Z") || a.created_at.includes("+") ? "" : "Z")).toLocaleString()}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {!summary.model && (
         <ErrorBox error="No trained model found. Run `python ml/train.py --source synthetic` and restart the API." />
       )}

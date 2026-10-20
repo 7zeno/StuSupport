@@ -9,6 +9,7 @@ from ..models import InterventionNote, Student, User
 from ..schemas import DashboardSummary, PredictionOut
 from ..security import require_admin, require_staff
 from ..services import rag, risk
+from .counselor import SAFETY_ALERT_PREFIX
 from .students import assess
 
 router = APIRouter(prefix="/api", tags=["dashboard"])
@@ -33,6 +34,12 @@ def dashboard_summary(db: Session = Depends(get_db), _: User = Depends(require_s
             levels[lvl] += 1
             dept[d][lvl] += 1
 
+    alerts = db.execute(
+        select(InterventionNote.student_id, Student.name, Student.roll_no, InterventionNote.created_at)
+        .join(Student, Student.id == InterventionNote.student_id)
+        .where(InterventionNote.status != "resolved", InterventionNote.note.startswith(SAFETY_ALERT_PREFIX))
+        .order_by(InterventionNote.created_at.desc())
+    ).all()
     open_notes = db.scalar(select(func.count()).select_from(InterventionNote).where(InterventionNote.status != "resolved"))
     return DashboardSummary(
         total_students=len(students),
@@ -46,6 +53,7 @@ def dashboard_summary(db: Session = Depends(get_db), _: User = Depends(require_s
             ({"department": k, **{lvl: v.get(lvl, 0) for lvl in ("Low", "Medium", "High")}, "total": v["total"]} for k, v in dept.items()),
             key=lambda x: -x["High"],
         ),
+        safety_alerts=[{"student_id": a[0], "name": a[1], "roll_no": a[2], "created_at": a[3].isoformat()} for a in alerts],
         model=risk.model_info(),
     )
 

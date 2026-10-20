@@ -57,6 +57,14 @@ class Settings:
         self.groq_model: str = _env("GROQ_MODEL", "qwen/qwen3.8-27b")
         self.groq_base_url: str = _env("GROQ_BASE_URL", "https://api.groq.com/openai/v1")
 
+        # Crisis contacts, always given to students whose messages suggest risk of self-harm.
+        # The first number is treated as the primary helpline and must appear in crisis replies.
+        self.crisis_contacts: str = _env(
+            "CRISIS_CONTACTS",
+            "Tele-MANAS, the free 24x7 national mental health helpline: 14416 or 1-800-891-4416. "
+            "Emergency services: 112.",
+        )
+
         # RAG
         self.knowledge_base_dir: Path = Path(_env("KNOWLEDGE_BASE_DIR", str(ROOT_DIR / "knowledge_base")))
         self.embedding_model: str = _env("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")

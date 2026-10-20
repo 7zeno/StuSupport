@@ -89,6 +89,82 @@ def test_student_permissions_and_counselor(client):
     r = client.post("/api/counselor/chat", json={"message": "My attendance is low, can I still write exams?"}, headers=h).json()
     assert r["llm"] == "offline-fallback"
     assert any("Attendance" in s["title"] for s in r["sources"])
-    crisis = client.post("/api/counselor/chat", json={"message": "I want to die"}, headers=h).json()
+    crisis = client.post("/api/counselor/chat", json={"message": "I dont want to live anymore"}, headers=h).json()
     assert "14416" in crisis["reply"]
+    assert crisis["sources"][0]["title"].startswith("Counseling")  # crisis resources first, not attendance
     assert len(client.get("/api/counselor/history", headers=h).json()) == 4
+
+    # Staff get exactly one open alert (deduplicated), without the student's words.
+    client.post("/api/counselor/chat", json={"message": "i want to end my life"}, headers=h)
+    fh = login(client, "faculty@stusupport.dev")
+    alerts = client.get("/api/dashboard/summary", headers=fh).json()["safety_alerts"]
+    assert [a["student_id"] for a in alerts] == [me["student_id"]]
+    notes = client.get(f"/api/students/{me['student_id']}", headers=fh).json()["notes"]
+    alert_notes = [n for n in notes if n["note"].startswith("Safety alert")]
+    assert len(alert_notes) == 1 and "live" not in alert_notes[0]["note"]
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "I dont want to live anymore",
+        "I don't want to be alive",
+        "i do not want to exist",
+        "thinking about suicide",
+        "I keep hurting myself",
+        "everyone would be better off without me",
+        "there's no point in living",
+        "I want to end it all",
+        "I cant go on like this",
+        "marna chahta hu",
+        "naaku chachipovalani undi",
+    ],
+)
+def test_crisis_detector_catches(text):
+    from app.services.counselor import is_crisis
+
+    assert is_crisis(text)
+
+
+@pytest.mark.parametrize(
+    "text",
+    ["I'm dying to finish this assignment", "this exam is killing me lol", "I want to live in Bangalore after graduation"],
+)
+def test_crisis_detector_ignores_ordinary_phrases(text):
+    from app.services.counselor import is_crisis
+
+    assert not is_crisis(text)
+
+
+def test_model_flag_catches_what_detector_misses(monkeypatch):
+    """If the phrase list misses a message but the LLM marks it [SAFETY], contacts are still guaranteed."""
+    import asyncio
+
+    from app.services import counselor
+
+    class FakeResponse:
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return {"choices": [{"message": {"content": "[SAFETY]\nI'm worried about you. Are you safe right now?"}}]}
+
+    class FakeClient:
+        def __init__(self, *a, **k):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *a):
+            pass
+
+        async def post(self, *a, **k):
+            return FakeResponse()
+
+    monkeypatch.setattr(counselor.settings, "groq_api_key", "test-key")
+    monkeypatch.setattr(counselor.httpx, "AsyncClient", FakeClient)
+    reply, model, crisis = asyncio.run(
+        counselor.generate_reply("everything feels pointless, nobody would notice", [], "", [], "X", crisis=False)
+    )
+    assert crisis and "14416" in reply and "[SAFETY]" not in reply

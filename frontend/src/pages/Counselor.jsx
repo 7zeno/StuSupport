@@ -80,8 +80,9 @@ export default function Counselor() {
       <div className="mb-3">
         <h1 className="text-2xl font-bold">Counselor</h1>
         <p className="text-sm text-ink-500">
-          A confidential space to talk through what's getting in the way. Answers draw on your institution's policies; for anything
-          urgent, contact the counseling centre directly.
+          A private space to talk through what's getting in the way. Answers draw on your institution's policies. Faculty don't
+          see your messages, but if something you write suggests you may be at risk of harm, a staff member will be asked to check
+          in on you. If you need help right now, call Tele-MANAS on 14416 (free, 24x7) or 112.
           {llm === "offline-fallback" && <span className="ml-1 text-amber-700">(AI responses are offline — showing policy excerpts.)</span>}
         </p>
       </div>

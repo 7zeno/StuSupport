@@ -100,10 +100,10 @@ function Notes({ student, onChange }) {
       </form>
       <ul className="space-y-3">
         {student.notes.map((n) => (
-          <li key={n.id} className="rounded-xl border border-ink-100 p-3 text-sm">
+          <li key={n.id} className={`rounded-xl border p-3 text-sm ${n.note.startsWith("Safety alert") && n.status !== "resolved" ? "border-rose-300 bg-rose-50" : "border-ink-100"}`}>
             <p>{n.note}</p>
             <div className="mt-2 flex items-center justify-between text-xs text-ink-500">
-              <span>{n.author_name ?? "—"} · {fmtDate(n.created_at)}</span>
+              <span>{n.author_name ?? "StuSupport (automatic)"} · {fmtDate(n.created_at)}</span>
               <select className="rounded-lg border border-ink-200 bg-white px-2 py-1" value={n.status} onChange={(e) => setStatus(n, e.target.value)}>
                 <option value="open">Open</option>
                 <option value="in_progress">In progress</option>

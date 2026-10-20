@@ -130,6 +130,7 @@ class DashboardSummary(BaseModel):
     fee_defaulters: int
     open_interventions: int
     by_department: list[dict]
+    safety_alerts: list[dict] = []  # open automatic alerts: student_id, name, roll_no, created_at
     model: dict | None
 
 
