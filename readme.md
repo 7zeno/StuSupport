@@ -107,17 +107,97 @@ Institutional documents (academic policies, financial aid criteria, counseling a
 ## Project Structure
 
 ```text
-ai-dropout-prediction/
-
-├── frontend/
-├── backend/
-├── ml/
-├── database/
-├── knowledge_base/
+stusupport/
+├── frontend/            React + Tailwind (Vite)
+│   └── src/{pages,components,lib}
+├── backend/             FastAPI app
+│   ├── app/{routers,services}   auth, students, dashboard, counselor; risk, rag, embeddings
+│   ├── seed.py          demo data + knowledge base ingest
+│   └── tests/
+├── ml/                  synthetic data generator, dataset loaders, training script
+├── database/schema.sql  reference DDL (PostgreSQL + pgvector)
+├── knowledge_base/      institutional documents for RAG (templates)
 ├── docs/
+├── docker-compose.yml   local PostgreSQL + pgvector
 ├── requirements.txt
 └── README.md
 ```
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Python 3.11+
+- Node.js 20+
+- PostgreSQL 15+ with the pgvector extension (or Docker; or skip it and use the built-in SQLite fallback for a first run)
+
+### 1. Install and train the model
+
+```bash
+python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+
+# Demo model on synthetic data (no download needed)
+python ml/train.py --source synthetic
+
+# Or: the Martins et al. (2021) dataset — download data.csv from
+# https://archive.ics.uci.edu/dataset/697 into ml/data/, then:
+python ml/train.py --source uci --csv ml/data/data.csv
+```
+
+The UCI dataset has no attendance-percentage column, so a model trained on it uses CGPA, SGPA, backlogs and fee status only (mapping in `ml/data_sources.py`). Retrain on your institution's own records to use attendance.
+
+### 2. Configure and start the backend
+
+```bash
+docker compose up -d                 # PostgreSQL + pgvector on :5432 (optional)
+cp backend/.env.example backend/.env # set DATABASE_URL, JWT_SECRET, GROQ_API_KEY
+cd backend
+python seed.py                       # tables, demo users, 60 demo students, knowledge base ingest
+uvicorn app.main:app --reload        # http://localhost:8000/docs
+pytest -q                            # API tests on a throwaway SQLite DB
+```
+
+Without `DATABASE_URL` the API uses `backend/stusupport.db` (SQLite). Without `GROQ_API_KEY` the counselor still runs RAG but returns the retrieved policy excerpts instead of a generated reply.
+
+### 3. Start the frontend
+
+```bash
+cd frontend
+npm install
+npm run dev                          # http://localhost:5173 (proxies /api to :8000)
+```
+
+For deployment (e.g. backend on Render/Railway, frontend as a static site), build with `VITE_API_URL=https://your-api.example.com npm run build` and add the frontend's URL to `CORS_ORIGINS` on the backend.
+
+Demo logins (password `password123`): `faculty@stusupport.dev`, `admin@stusupport.dev`, `student.high@stusupport.dev`, `student.medium@stusupport.dev`, `student.low@stusupport.dev`.
+
+### 4. Replace the knowledge base templates
+
+Files in `knowledge_base/` are templates with `[[placeholders]]`. Fill in your institution's real offices, contacts, deadlines and amounts, then run `python seed.py --ingest-only`.
+
+### API overview
+
+| Method | Path | Who |
+| --- | --- | --- |
+| POST | `/api/auth/login` | all |
+| GET | `/api/auth/me` | all |
+| POST | `/api/auth/users` | admin |
+| GET/POST | `/api/students` | faculty, admin |
+| GET | `/api/students/{id}` | staff, or the student themself |
+| PATCH/DELETE | `/api/students/{id}` | faculty, admin |
+| PUT | `/api/students/{id}/records` | faculty, admin (adds/updates a semester and re-scores) |
+| POST | `/api/students/{id}/predict` | faculty, admin |
+| POST/PATCH | `/api/students/{id}/notes[/{note_id}]` | faculty, admin |
+| GET | `/api/dashboard/summary` | faculty, admin |
+| POST | `/api/predictions/run-all` | faculty, admin |
+| GET | `/api/model` | faculty, admin |
+| POST | `/api/counselor/chat`, GET `/api/counselor/history` | students |
+| POST | `/api/admin/knowledge-base/ingest` | admin |
+
+Risk bands: probability < 0.35 Low, < 0.65 Medium, otherwise High (configurable in `.env`).
 
 ---
 
@@ -156,14 +236,14 @@ Low/Medium Risk   High Risk
 
 ## Roadmap
 
-- [ ] Design database schema
-- [ ] Develop backend APIs
-- [ ] Implement authentication
-- [ ] Build frontend
-- [ ] Train and evaluate the ML model
-- [ ] Integrate the counseling assistant
-- [ ] Build RAG knowledge base (document ingestion + pgvector)
-- [ ] Develop faculty dashboard
+- [x] Design database schema
+- [x] Develop backend APIs
+- [x] Implement authentication
+- [x] Build frontend
+- [x] Train and evaluate the ML model
+- [x] Integrate the counseling assistant
+- [x] Build RAG knowledge base (document ingestion + pgvector)
+- [x] Develop faculty dashboard
 - [ ] Deploy the application
 - [ ] Complete documentation
 
