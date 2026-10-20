@@ -33,7 +33,13 @@ from data_sources import load_synthetic, load_uci
 HERE = Path(__file__).parent
 
 
-def build_pipeline(seed: int) -> Pipeline:
+# Direction each feature is allowed to push dropout risk (+1 raises, -1 lowers).
+# Without this, sparse regions of the data (e.g. the very high grades that are rare in
+# the UCI dataset) can produce nonsense such as a 9.2 CGPA scoring higher risk than 7.5.
+MONOTONIC = {"cgpa": -1, "sgpa": -1, "attendance_pct": -1, "backlogs": 1, "fee_paid": -1}
+
+
+def build_pipeline(seed: int, features: list[str]) -> Pipeline:
     return Pipeline(
         [
             ("impute", SimpleImputer(strategy="median")),
@@ -43,6 +49,7 @@ def build_pipeline(seed: int) -> Pipeline:
                     n_estimators=400,
                     min_samples_leaf=3,
                     class_weight="balanced",  # dropouts are the minority class
+                    monotonic_cst=[MONOTONIC.get(f, 0) for f in features],
                     n_jobs=-1,
                     random_state=seed,
                 ),
@@ -79,7 +86,7 @@ def main() -> None:
         X, y, test_size=0.2, stratify=y, random_state=args.seed
     )
 
-    pipe = build_pipeline(args.seed)
+    pipe = build_pipeline(args.seed, features)
     cv = cross_validate(
         pipe,
         X_train,
@@ -99,6 +106,7 @@ def main() -> None:
         "model_version": version,
         "source": args.source,
         "features": features,
+        "drop_enrolled": bool(args.drop_enrolled),
         "n_rows": int(len(df)),
         "dropout_rate": round(float(y.mean()), 4),
         "test": {

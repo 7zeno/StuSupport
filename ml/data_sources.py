@@ -45,9 +45,9 @@ def _col(df: pd.DataFrame, name: str) -> pd.Series:
 
 def load_uci(path: Path, drop_enrolled: bool = False) -> tuple[pd.DataFrame, list[str]]:
     # The UCI file is ';'-separated (and one header contains a tab, which confuses delimiter sniffing).
-    raw = pd.read_csv(path, sep=";")
+    raw = pd.read_csv(path, sep=";", encoding="utf-8-sig")  # file starts with a BOM
     if raw.shape[1] == 1:  # someone re-saved it as comma-separated
-        raw = pd.read_csv(path)
+        raw = pd.read_csv(path, encoding="utf-8-sig")
     target = _col(raw, "Target").astype(str).str.strip()
     if drop_enrolled:
         keep = target != "Enrolled"
