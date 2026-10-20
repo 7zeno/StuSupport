@@ -1,0 +1,24 @@
+# Backend
+fastapi>=0.115
+uvicorn[standard]>=0.30
+sqlalchemy>=2.0
+psycopg[binary]>=3.2
+pgvector>=0.3
+pyjwt>=2.8
+pydantic>=2.7
+email-validator>=2.1
+httpx>=0.27
+python-dotenv>=1.0
+
+# Machine learning
+scikit-learn>=1.5
+pandas>=2.2
+numpy>=1.26
+joblib>=1.4
+
+# RAG embeddings (optional but recommended; pulls in PyTorch).
+# Without it the app falls back to a basic hashed bag-of-words embedder.
+sentence-transformers>=3.0
+
+# Tests
+pytest>=8.0

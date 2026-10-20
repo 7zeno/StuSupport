@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+backend/.env
+backend/*.db
+
+# ML
+ml/artifacts/
+ml/data/*.csv
+!ml/data/.gitkeep
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env*
+
+.DS_Store
