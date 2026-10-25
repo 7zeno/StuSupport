@@ -36,7 +36,10 @@ HERE = Path(__file__).parent
 # Direction each feature is allowed to push dropout risk (+1 raises, -1 lowers).
 # Without this, sparse regions of the data (e.g. the very high grades that are rare in
 # the UCI dataset) can produce nonsense such as a 9.2 CGPA scoring higher risk than 7.5.
-MONOTONIC = {"cgpa": -1, "sgpa": -1, "attendance_pct": -1, "backlogs": 1, "fee_paid": -1}
+# fee_paid is left unconstrained (0): constraining this binary feature made the forest almost
+# ignore it (importance 0.004 on the UCI data, where 87% of students with unpaid fees drop out).
+# Unconstrained, it is used (importance ~0.15) and unpaid fees still raise risk in every case checked.
+MONOTONIC = {"cgpa": -1, "sgpa": -1, "attendance_pct": -1, "backlogs": 1, "fee_paid": 0}
 
 
 def build_pipeline(seed: int, features: list[str]) -> Pipeline:
